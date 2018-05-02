@@ -1,0 +1,229 @@
+Log for OutputA:
+ 
+ 1          OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ NOTE: ODS statements in the SAS Studio environment may disable some output features.
+ 62         
+ 63         * 1 Open the program HW09.sas;
+ 64         * 2 Save it as a different name (pulkit.jain_HW09.sas);
+ 65         
+ 66         * 3 Add the header section;
+ 67         
+ 68         /***********************************************************************/
+ 69         /* Program Name:     pulkit.jain_HW09.sas   */
+ 70         /* Program Location: C:\Users\Pulkit Jain\Documents\sasuniversityedition\myfolders\assign9 */
+ 71         /* Date Created:     10/09/2017         */
+ 72         /* Author:  Pulkit Jain                     */
+ 73         /* Purpose:   Assignment 9, practice with accessing sas data, and view content     */
+ 74         
+ 75         * 4 Create two libname statements;
+ 76         * Assign library called orion to locaion of data with access only;
+ 77         * Assign another library with read and write access;
+ 78         
+ 79         libname orion '/folders/myfolders/prog1' access=readonly;
+ NOTE: Libref ORION was successfully assigned as follows: 
+       Engine:        V9 
+       Physical Name: /folders/myfolders/prog1
+ 80         libname pulkit09 '/folders/myfolders/assign9';
+ NOTE: Libref PULKIT09 was successfully assigned as follows: 
+       Engine:        V9 
+       Physical Name: /folders/myfolders/assign9
+ 81         
+ 82         * 5 Run the code inside HW09.sas;
+ 83         data work.donations;
+ 84            set orion.Employee_donations;
+ NOTE: Data file ORION.EMPLOYEE_DONATIONS.DATA is in a format that is native to another host, or the file encoding does not match 
+       the session encoding. Cross Environment Data Access will be used, which might require additional CPU resources and might 
+       reduce performance.
+ 85            keep Employee_ID Qtr1 Qtr2 Qtr3 Qtr4;
+ 86            Total=sum(Qtr1,Qtr2,Qtr3,Qtr4);
+ 87         run;
+ 
+ NOTE: There were 124 observations read from the data set ORION.EMPLOYEE_DONATIONS.
+ NOTE: The data set WORK.DONATIONS has 124 observations and 5 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.01 seconds
+       
+ 
+ 88         
+ 89         * 6 Comment out proc statement;
+ 90         * proc print data=work.donations;
+ 91         
+ 92         * 7 Edit the data step above so that it creates it in new library;
+ 93         
+ 94         data pulkit09.donations;
+ 95            set orion.Employee_donations;
+ NOTE: Data file ORION.EMPLOYEE_DONATIONS.DATA is in a format that is native to another host, or the file encoding does not match 
+       the session encoding. Cross Environment Data Access will be used, which might require additional CPU resources and might 
+       reduce performance.
+ 96            keep Employee_ID Qtr1 Qtr2 Qtr3 Qtr4;
+ 97            Total=sum(Qtr1,Qtr2,Qtr3,Qtr4);
+ 98         run;
+ 
+ NOTE: There were 124 observations read from the data set ORION.EMPLOYEE_DONATIONS.
+ NOTE: The data set PULKIT09.DONATIONS has 124 observations and 5 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.04 seconds
+       cpu time            0.01 seconds
+       
+ 
+ 99         
+ 100        * 8 Open a pdf output to capture the following results;
+ 101        ods pdf file = '/folders/myfolders/assign9/pulkit.jain_HW09_outputA.pdf' bookmarkgen= no;
+ NOTE: Writing ODS PDF output to DISK destination "/folders/myfolders/assign9/pulkit.jain_HW09_outputA.pdf", printer "PDF".
+ 102        
+ 103        * 9 Add a proc contents step that will display the descriptor portion of the donations data set;
+ 104        * Add a title to it;
+ 105        title 'Descriptor Portion of Donations Permanent Data Set';
+ 106        PROC CONTENTS data = pulkit09.donations;
+ 107        RUN;
+ 
+ NOTE: PROCEDURE CONTENTS used (Total process time):
+       real time           0.10 seconds
+       cpu time            0.09 seconds
+       
+ 
+ 108        
+ 109        * 10 Add a proc statement to show content of work library. With descriptor portion of each data;
+ 110        title 'Descriptor Portion of All Data Sets in Work Library';
+ 111        PROC CONTENTS data = work._ALL_ ;
+ 112        RUN;
+ 
+ NOTE: PROCEDURE CONTENTS used (Total process time):
+       real time           0.10 seconds
+       cpu time            0.10 seconds
+       
+ 
+ 113        
+ 114        * 11 Add a proc statement to show content of work library. Without descriptor portion of each data;
+ 115        
+ 116        title 'List of Data Sets in Orion Library';
+ 117        PROC CONTENTS data = orion._ALL_ NODS;
+ 118        RUN;
+ 
+ NOTE: PROCEDURE CONTENTS used (Total process time):
+       real time           0.11 seconds
+       cpu time            0.10 seconds
+       
+ 
+ 119        
+ 120        * 12 close pdf output destination;
+ 121        ods pdf close;
+ NOTE: ODS PDF printed 5 pages to /folders/myfolders/assign9/pulkit.jain_HW09_outputA.pdf.
+ 122        
+ 123        ods listing;
+ 124        
+ 125        
+ 126        OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 139        
+
+
+Log for OutputB:
+
+ 
+ 1          OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ NOTE: ODS statements in the SAS Studio environment may disable some output features.
+ 62         
+ 63         * 1 Open the program HW09.sas;
+ 64         * 2 Save it as a different name (pulkit.jain_HW09.sas);
+ 65         
+ 66         * 3 Add the header section;
+ 67         
+ 68         /***********************************************************************/
+ 69         /* Program Name:     pulkit.jain_HW09.sas   */
+ 70         /* Program Location: C:\Users\Pulkit Jain\Documents\sasuniversityedition\myfolders\assign9 */
+ 71         /* Date Created:     10/09/2017         */
+ 72         /* Author:  Pulkit Jain                     */
+ 73         /* Purpose:   Assignment 9, practice with accessing sas data, and view content     */
+ 74         
+ 75         * 4 Create two libname statements;
+ 76         * Assign library called orion to locaion of data with access only;
+ 77         * Assign another library with read and write access;
+ 78         
+ 79         libname orion '/folders/myfolders/prog1' access=readonly;
+ NOTE: Libref ORION was successfully assigned as follows: 
+       Engine:        V9 
+       Physical Name: /folders/myfolders/prog1
+ 80         libname pulkit09 '/folders/myfolders/assign9';
+ NOTE: Libref PULKIT09 was successfully assigned as follows: 
+       Engine:        V9 
+       Physical Name: /folders/myfolders/assign9
+ 81         
+ 82         * 5 Run the code inside HW09.sas;
+ 83         /* data work.donations; */
+ 84         /*    set orion.Employee_donations; */
+ 85         /*    keep Employee_ID Qtr1 Qtr2 Qtr3 Qtr4; */
+ 86         /*    Total=sum(Qtr1,Qtr2,Qtr3,Qtr4); */
+ 87         /* run; */
+ 88         
+ 89         * 6 Comment out proc statement;
+ 90         * proc print data=work.donations;
+ 91         
+ 92         * 7 Edit the data step above so that it creates it in new library;
+ 93         
+ 94         /* data pulkit09.donations; */
+ 95         /*    set orion.Employee_donations; */
+ 96         /*    keep Employee_ID Qtr1 Qtr2 Qtr3 Qtr4; */
+ 97         /*    Total=sum(Qtr1,Qtr2,Qtr3,Qtr4); */
+ 98         /* run; */
+ 99         
+ 100        * 8 Open a pdf output to capture the following results;
+ 101        /* ods pdf file = '/folders/myfolders/assign9/pulkit.jain_HW09_outputA.pdf' bookmarkgen= no; */
+ 102        ods pdf file = '/folders/myfolders/assign9/pulkit.jain_HW09_outputB.pdf'
+ 103        bookmarkgen= no style=sasweb;
+ NOTE: Writing ODS PDF output to DISK destination "/folders/myfolders/assign9/pulkit.jain_HW09_outputB.pdf", printer "PDF".
+ 104        
+ 105        
+ 106        * 9 Add a proc contents step that will display the descriptor portion of the donations data set;
+ 107        * Add a title to it;
+ 108        title 'Descriptor Portion of Donations Permanent Data Set';
+ 109        PROC CONTENTS data = pulkit09.donations;
+ 110        RUN;
+ 
+ NOTE: PROCEDURE CONTENTS used (Total process time):
+       real time           0.11 seconds
+       cpu time            0.09 seconds
+       
+ 
+ 111        
+ 112        * 10 Add a proc statement to show content of work library. With descriptor portion of each data;
+ 113        title 'Descriptor Portion of All Data Sets in Work Library';
+ 114        PROC CONTENTS data = work._ALL_ ;
+ 115        RUN;
+ 
+ NOTE: PROCEDURE CONTENTS used (Total process time):
+       real time           0.08 seconds
+       cpu time            0.06 seconds
+       
+ 
+ 116        
+ 117        * 11 Add a proc statement to show content of work library. Without descriptor portion of each data;
+ 118        
+ 119        title 'List of Data Sets in Orion Library';
+ 120        PROC CONTENTS data = orion._ALL_ NODS;
+ 121        RUN;
+ 
+ NOTE: PROCEDURE CONTENTS used (Total process time):
+       real time           0.12 seconds
+       cpu time            0.10 seconds
+       
+ 
+ 122        
+ 123        * 12 close pdf output destination;
+ 124        ods pdf close;
+ NOTE: ODS PDF printed 4 pages to /folders/myfolders/assign9/pulkit.jain_HW09_outputB.pdf.
+ 125        
+ 126        ods listing;
+ 127        
+ 128        /* 13 Signout and run the program */
+ 129        /* 14 Comment out step 5 & 7, and pdf output statement */
+ 130        /* Create a new similar pdf, titled outputB, with different color */
+ 131        /* 15 Execute the program */
+ 132        
+ 133        OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 146        
+
+
+Notes:
+
+The two output differ in the color and general style. That has happened because we have included the sasweb style in the second pdf. Now we can see that headings, headers inside table are colored blue. The other difference is that the page number 3 in OutputA is not present in OutputB. It is titled "Descriptor Portion of All Data Sets in Work Library". The reason being, to ensure that the output is being displayed in the web environment, SAS Studio uses specific ODS options. If output of the code is not compatible with a Web environment, that code is not displayed.

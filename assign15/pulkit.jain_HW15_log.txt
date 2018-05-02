@@ -1,0 +1,219 @@
+ 
+ 1          OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ NOTE: ODS statements in the SAS Studio environment may disable some output features.
+ 62         
+ 63         /********************************************************************************************/
+ 64         /* Program Name:     pulkit.jain_HW15.sas    */
+ 65         /* Program Location: C:\Users\Pulkit Jain\Documents\sasuniversityedition\myfolders\assign15 */
+ 66         /* Date Created:     11/27/2017          */
+ 67         /* Author:  Pulkit Jain                      */
+ 68         /* Purpose:   Assignment 15, User Defined Formats    */
+ 69         /********************************************************************************************/
+ 70         
+ 71         /* 1 Use a fileref to access CSV file, include headers*/
+ 72         /* Create two libname statements;   */
+ 73         /* Assign library to locaion of hw data with access only; */
+ 74         /* Assign another library with read and write access;     */
+ 75         
+ 76         
+ 77         filename schools '/folders/myfolders/hw_data/OKSchools.csv';
+ 78         
+ 79         libname hw_data '/folders/myfolders/hw_data' access=readonly;
+ NOTE: Libref HW_DATA was successfully assigned as follows: 
+       Engine:        V9 
+       Physical Name: /folders/myfolders/hw_data
+ 80         libname pulkit15 '/folders/myfolders/assign15';
+ NOTE: Libref PULKIT15 was successfully assigned as follows: 
+       Engine:        V9 
+       Physical Name: /folders/myfolders/assign15
+ 81         
+ 82         /* Specify a fileref to designate output of pdf */
+ 83         
+ 84         filename HW15 '/folders/myfolders/assign15/pulkit.jain_HW15_output.pdf';
+ 85         
+ 86         /* 2 Create Output with landscape orientation */
+ 87         /* Display date on the final section of the output */
+ 88         /* SAS output should start on page number 2 */
+ 89         
+ 90         ods pdf file = HW15 bookmarkgen=yes ;
+ NOTE: Writing ODS PDF output to DISK destination "HW15", printer "PDF".
+ 91         options orientation = landscape pageno=2 date=NO;
+ 92         
+ 93         /* 3 Create a format to display school division based on number of students on HSTotal */
+ 94         /* Division is a label to show number of students size */
+ 95         
+ 96         /* 4 Create a second format within the same procedure for STRatio */
+ 97         
+ 98         proc format;
+ 99         
+ 99       !  value Div_fmt  0-69 = 'B'
+ 100           70-106 = 'A'
+ 101           107-180 = '2A'
+ 102           181-374 = '3A'
+ 103           375-720 = '4A'
+ 104           721-1250 = '5A'
+ 105           1251-high = '6A'
+ 106           other = 'Non-HS';
+ NOTE: Format DIV_FMT has been output.
+ 107        
+ 107      !  value st_fmt   0-<10 = 'Very Small'
+ 108           10-<14= 'Small'
+ 109           14-<18= 'Medium'
+ 110           18-<22= 'Large'
+ 111           22-high='Very Large'
+ 112           other = 'Unknown';
+ NOTE: Format ST_FMT has been output.
+ 113        run;
+ 
+ NOTE: PROCEDURE FORMAT used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.01 seconds
+       
+ 
+ 114        
+ 115        /* Alternate and faster way to read from csv */
+ 116        /* Not covered in assignment */
+ 117        
+ 118        /* PROC IMPORT DATAFILE = schools */
+ 119        /* DBMS = CSV */
+ 120        /* OUT = work.schools_data; */
+ 121        /* GETNAMES = YES; */
+ 122        /* RUN; */
+ 123        
+ 124        /*  5 Convert CSV to SAS dataset*/
+ 125        
+ 126        data work.school_data;
+ 127        length School   $50
+ 128           LocCity  $50
+ 129           MailCity $50
+ 130           County   $50
+ 131           Teachers 6
+ 132           Grade7 4
+ 133           Grade8 4
+ 134           Grade9 4
+ 135           Grade10 4
+ 136           Grade11 4
+ 137           Grade12 4
+ 138           Ungraded 4
+ 139           PreTotal 4
+ 140           ElemTotal 4
+ 141           HSTotal 4
+ 142           STRatio 6;
+ 143        infile schools DSD firstobs= 2;
+ 144        input School
+ 145             LocCity
+ 146          MailCity
+ 147          County
+ 148          Teachers
+ 149          Grade7
+ 150          Grade8
+ 151          Grade9
+ 152          Grade10
+ 153          Grade11
+ 154          Grade12
+ 155          Ungraded
+ 156          PreTotal
+ 157          ElemTotal
+ 158          HSTotal
+ 159          STRatio;
+ 160        run;
+ 
+ NOTE: The infile SCHOOLS is:
+       Filename=/folders/myfolders/hw_data/OKSchools.csv,
+       Owner Name=root,Group Name=vboxsf,
+       Access Permission=-rwxrwx---,
+       Last Modified=27Nov2017:22:42:15,
+       File Size (bytes)=134141
+ 
+ NOTE: 1785 records were read from the infile SCHOOLS.
+       The minimum record length was 55.
+       The maximum record length was 110.
+ NOTE: The data set WORK.SCHOOL_DATA has 1785 observations and 16 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.00 seconds
+       
+ 
+ 161        
+ 162        /* 6 Print first 30 observations */
+ 163        
+ 164        PROC PRINT data = school_data (obs = 30) noobs;
+ 165        title1 "Oklahoma School Analysis";
+ 166        title2 "Partial Listing";
+ 167        footnote "Based on NCES Data";
+ 168        RUN;
+ 
+ NOTE: There were 30 observations read from the data set WORK.SCHOOL_DATA.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.18 seconds
+       cpu time            0.18 seconds
+       
+ 
+ 169        
+ 170        /* 7 Output distribution of class sizes */
+ 171        
+ 172        PROC FREQ data = work.school_data;
+ 173        tables STRatio / nocum missing ;
+ 174        format STRatio st_fmt.;
+ 175        title2 'Distribution of Class Sizes Based on Student/Teacher Ratio';
+ 176        label stratio = "Class Size";
+ 177        RUN;
+ 
+ NOTE: There were 1785 observations read from the data set WORK.SCHOOL_DATA.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.06 seconds
+       cpu time            0.06 seconds
+       
+ 
+ 178        
+ 179        /* 8 Average Student Teacher Ratio Grouped by Division*/
+ 180        /* 9 Include Date and Data Portion of Summary at the top of the page */
+ 181        
+ 182        title2;
+ 183        ods proctitle = off;
+ 184        options date = YES;
+ 185        
+ 186        PROC SUMMARY data = work.school_data missing mean maxdec=1 nway;
+ 187        var STRatio;
+ 188        class HSTotal;
+ 189        format HSTotal div_fmt.;
+ 190        output out = work.means2
+ 191        mean = Ratio;
+ 192        run;
+ 
+ NOTE: There were 1785 observations read from the data set WORK.SCHOOL_DATA.
+ NOTE: The data set WORK.MEANS2 has 8 observations and 4 variables.
+ NOTE: PROCEDURE SUMMARY used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.02 seconds
+       
+ 
+ 193        
+ 194        proc print data= work.means2 noobs label;
+ 195        title3 "Average Student-Teacher Ratio by School Division";
+ 196        var HSTotal _FREQ_ Ratio;
+ 197        label HSTotal = 'Division'
+ 198          _FREQ_ = 'Schools';
+ 199        format Ratio 5.1;
+ 200        run;
+ 
+ NOTE: There were 8 observations read from the data set WORK.MEANS2.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.04 seconds
+       cpu time            0.03 seconds
+       
+ 200      !     
+ 
+ 201        
+ 202        /* 10 Houskeeping to make sure title or footnote dont carry over */
+ 203        ods proctitle = ON;
+ 204        title1;
+ 205        footnote;
+ 206        
+ 207        ods pdf close;
+ NOTE: ODS PDF printed 4 pages to /folders/myfolders/assign15/pulkit.jain_HW15_output.pdf.
+ 208        ods listing;
+ 209        
+ 210        
+ 211        OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 224        

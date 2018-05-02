@@ -1,0 +1,225 @@
+ 
+ 1          OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ NOTE: ODS statements in the SAS Studio environment may disable some output features.
+ 62         
+ 63         /********************************************************************************************/
+ 64         /* Program Name:     pulkit.jain_HW13.sas    */
+ 65         /* Program Location: C:\Users\Pulkit Jain\Documents\sasuniversityedition\myfolders\assign13 */
+ 66         /* Date Created:     11/12/2017          */
+ 67         /* Author:  Pulkit Jain                      */
+ 68         /* Purpose:   Assignment 13, using arrays & variable lists    */
+ 69         /********************************************************************************************/
+ 70         
+ 71         /* Create two libname statements;   */
+ 72         /* Assign library to locaion of hw data with access only; */
+ 73         /* Assign another library with read and write access;     */
+ 74         
+ 75         libname hw_data '/folders/myfolders/hw_data' access=readonly;
+ NOTE: Libref HW_DATA was successfully assigned as follows: 
+       Engine:        V9 
+       Physical Name: /folders/myfolders/hw_data
+ 76         libname pulkit13 '/folders/myfolders/assign13';
+ NOTE: Libref PULKIT13 was successfully assigned as follows: 
+       Engine:        V9 
+       Physical Name: /folders/myfolders/assign13
+ 77         
+ 78         /* Specify a fileref to designate output of pdf */
+ 79         
+ 80         filename HW13 '/folders/myfolders/assign13/pulkit.jain_HW13_output.pdf';
+ 81         
+ 82         /* 2 Create narrow dataset for scholarship funds */
+ 83         
+ 84         data work.student_funds (keep= student_id i fund_code);
+ 85         * Read only required variables;
+ 86            set hw_data.scholarships (drop = name amount: major);
+ NOTE: Data file HW_DATA.SCHOLARSHIPS.DATA is in a format that is native to another host, or the file encoding does not match the 
+       session encoding. Cross Environment Data Access will be used, which might require additional CPU resources and might reduce 
+       performance.
+ 87            * create array reference for fund variable;
+ 88            array fund{*} $4 fund:;
+ 89            length i 4;
+ 90            * soft code the loop for automation;
+ 91            do i = 1 to dim(fund);
+ 92              if fund{i} ne . then do;
+ 93              i = i;
+ 94              fund_code = fund{i};
+ 95             output;
+ 96              end;
+ 97            end;
+ 98         run;
+ 
+ NOTE: Character values have been converted to numeric values at the places given by: (Line):(Column).
+       92:10   
+ NOTE: There were 424 observations read from the data set HW_DATA.SCHOLARSHIPS.
+ NOTE: The data set WORK.STUDENT_FUNDS has 2243 observations and 3 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.02 seconds
+       
+ 
+ 99         
+ 100        /* 3 Sort so as to merge with fund_data data set */
+ 101        
+ 102        PROC SORT data = work.student_funds;
+ 103        by fund_code;
+ 104        run;
+ 
+ NOTE: There were 2243 observations read from the data set WORK.STUDENT_FUNDS.
+ NOTE: The data set WORK.STUDENT_FUNDS has 2243 observations and 3 variables.
+ NOTE: PROCEDURE SORT used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.01 seconds
+       
+ 
+ 105        
+ 106        
+ 107        /* 4 Sort fund_data and save in the temporary library*/
+ 108        
+ 109        PROC SORT data = hw_data.fund_data out = work.fund_data_sorted;
+ NOTE: Data file HW_DATA.FUND_DATA.DATA is in a format that is native to another host, or the file encoding does not match the 
+       session encoding. Cross Environment Data Access will be used, which might require additional CPU resources and might reduce 
+       performance.
+ 110        by fund_code;
+ 111        run;
+ 
+ NOTE: There were 255 observations read from the data set HW_DATA.FUND_DATA.
+ NOTE: The data set WORK.FUND_DATA_SORTED has 255 observations and 3 variables.
+ NOTE: PROCEDURE SORT used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.00 seconds
+       
+ 
+ 112        
+ 113        /*  5 Merge the two datasets by fund code*/
+ 114        data work.fund_types;
+ 115            merge work.student_funds(in = a) work.fund_data_sorted (in = b);
+ 116            by fund_code;
+ 117            drop fund_name;
+ 118            * only keep observations which are present in student_funds data set;
+ 119            if a =1;
+ 120        run;
+ 
+ NOTE: There were 2243 observations read from the data set WORK.STUDENT_FUNDS.
+ NOTE: There were 255 observations read from the data set WORK.FUND_DATA_SORTED.
+ NOTE: The data set WORK.FUND_TYPES has 2243 observations and 4 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       cpu time            0.00 seconds
+       
+ 
+ 121        
+ 122        /* 6 Transform this data set back into a wide data set    */
+ 123        
+ 124        * sort before the transpose;
+ 125        PROC SORT data = fund_types out = fund_types_sorted;
+ 126        by student_id;
+ 127        run;
+ 
+ NOTE: There were 2243 observations read from the data set WORK.FUND_TYPES.
+ NOTE: The data set WORK.FUND_TYPES_SORTED has 2243 observations and 4 variables.
+ NOTE: PROCEDURE SORT used (Total process time):
+       real time           0.00 seconds
+       cpu time            0.01 seconds
+       
+ 
+ 128        
+ 129        proc transpose
+ 130          data = work.fund_types_sorted
+ 131          out=rotate2 (drop = _name_ _label_)
+ 132          prefix = Fund_Type;
+ 133         * declare variable to categorise data in row, columns;
+ 134         by student_id;
+ 135         id i;
+ 136        * declare variable to fill in the cells;
+ 137         var category;
+ 138        run;
+ 
+ NOTE: There were 2243 observations read from the data set WORK.FUND_TYPES_SORTED.
+ NOTE: The data set WORK.ROTATE2 has 424 observations and 11 variables.
+ NOTE: PROCEDURE TRANSPOSE used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.01 seconds
+       
+ 
+ 139        
+ 140        * arrange the variables in the data alphabetically;
+ 141        data rotate2_arranged;
+ 142        retain student_id Fund_Type1-Fund_Type10;
+ 143        set rotate2;
+ 144        run;
+ 
+ NOTE: There were 424 observations read from the data set WORK.ROTATE2.
+ NOTE: The data set WORK.ROTATE2_ARRANGED has 424 observations and 11 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       cpu time            0.00 seconds
+       
+ 
+ 145        
+ 146        /* 7 Merge the Rotate2 data set with scholarships data by student id*/
+ 147        
+ 148        
+ 149        data work.fund_types_extended (drop = i);
+ 150            merge hw_data.scholarships work.rotate2_arranged;
+ NOTE: Data file HW_DATA.SCHOLARSHIPS.DATA is in a format that is native to another host, or the file encoding does not match the 
+       session encoding. Cross Environment Data Access will be used, which might require additional CPU resources and might reduce 
+       performance.
+ 151            by student_id;
+ 152            * create two array references and two variables for aid received;
+ 153        array aid_amount{*} amount:;
+ 154        array aid_name{*} Fund_Type:;
+ 155        int_aid = 0;
+ 156        ath_aid = 0;
+ 157        * loop to add Internal & Athletic aid received;
+ 158        do i = 1 to dim(aid_name);
+ 159        if aid_name{i} = 'Internal' then int_aid = sum(int_aid, aid_amount{i});
+ 160        if aid_name{i} = 'Athletic' then ath_aid = sum(ath_aid,aid_amount{i});
+ 161        end;
+ 162            tot_aid = sum(of amount:);
+ 163            * create labels for variables;
+ 164        label tot_aid = "Total Aid"
+ 165          int_aid = "Internal Scholarships"
+ 166          ath_aid = "Athletic Scholarships"
+ 167          major = "Maj_Code";
+ 168        run;
+ 
+ NOTE: There were 424 observations read from the data set HW_DATA.SCHOLARSHIPS.
+ NOTE: There were 424 observations read from the data set WORK.ROTATE2_ARRANGED.
+ NOTE: The data set WORK.FUND_TYPES_EXTENDED has 424 observations and 36 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.02 seconds
+       
+ 
+ 169        
+ 170        /* 8 Print the descriptor and data portion of final data set*/
+ 171        
+ 172        ods pdf file = HW13;
+ NOTE: Writing ODS PDF output to DISK destination "HW13", printer "PDF".
+ 173        
+ 174        PROC CONTENTS data = work.fund_types_extended order=varnum;
+ 175        run;
+ 
+ NOTE: PROCEDURE CONTENTS used (Total process time):
+       real time           0.14 seconds
+       cpu time            0.14 seconds
+       
+ 
+ 176        
+ 177        PROC PRINT data = work.fund_types_extended label noobs;
+ 178        var student_id name major int_aid ath_aid tot_aid;
+ 179        run;
+ 
+ NOTE: There were 424 observations read from the data set WORK.FUND_TYPES_EXTENDED.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.79 seconds
+       cpu time            0.78 seconds
+       
+ 
+ 180        
+ 181        ods pdf close;
+ NOTE: ODS PDF printed 14 pages to /folders/myfolders/assign13/pulkit.jain_HW13_output.pdf.
+ 182        ods listing;
+ 183        
+ 184        OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 197        

@@ -1,0 +1,309 @@
+ 
+ 1          OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ NOTE: ODS statements in the SAS Studio environment may disable some output features.
+ 62         
+ 63         /********************************************************************************************/
+ 64         /* Program Name:     pulkit.jain_HW10.sas    */
+ 65         /* Program Location: C:\Users\Pulkit Jain\Documents\sasuniversityedition\myfolders\assign10 */
+ 66         /* Date Created:     10/14/2017          */
+ 67         /* Author:  Pulkit Jain                      */
+ 68         /* Purpose:   Assignment 10, practice with accessing sas data, and view content      */
+ 69         /********************************************************************************************/
+ 70         
+ 71         /* 2 Create two libname statements;   */
+ 72         /* Assign library to locaion of hw data with access only; */
+ 73         /* Assign another library with read and write access;     */
+ 74         
+ 75         libname hw_data '/folders/myfolders/hw_data' access=readonly;
+ NOTE: Libref HW_DATA was successfully assigned as follows: 
+       Engine:        V9 
+       Physical Name: /folders/myfolders/hw_data
+ 76         libname pulkit10 '/folders/myfolders/assign10';
+ NOTE: Libref PULKIT10 was successfully assigned as follows: 
+       Engine:        V9 
+       Physical Name: /folders/myfolders/assign10
+ 77         
+ 78         /* 3 Specify a fileref to designate output of pdf */
+ 79         
+ 80         filename HW10 '/folders/myfolders/assign10/pulkit.jain_HW10_output.pdf';
+ 81         
+ 82         /* 4 Filter new data for following conditions   */
+ 83         /*   State is Not Equal to Blank/missing. All 3 syntax work here. */
+ 84         /*   Supply labels for months to display full month name  */
+ 85         /*   SAS dates are relative to 1/1/1960 */
+ 86         
+ 87         
+ 88         data pulkit10.jobs2017;
+ 89            set hw_data.jobs2017;
+ NOTE: Data file HW_DATA.JOBS2017.DATA is in a format that is native to another host, or the file encoding does not match the 
+       session encoding. Cross Environment Data Access will be used, which might require additional CPU resources and might reduce 
+       performance.
+ 90         /*    where State ne ''; */
+ 91         /*    where State is not missing; */
+ 92             where State is not null;
+ 93             label Aug__2016 = "August 2016"
+ 94             Sept__2016 = "September 2016"
+ 95               Oct__2016 = "October 2016"
+ 96             Nov__2016 = "November 2016"      
+ 97             Dec__2016 = "December 2016"      
+ 98               Jan__2017 = "January 2017"
+ 99               Feb__2017 = "February 2017"
+ 100              Mar__2017 = "March 2017"
+ 101              Apr__2017 = "April 2017"
+ 102              May_2017 = "May 2017"
+ 103              June_2017 = "June 2017"
+ 104              July_2017 = "July 2017"
+ 105              Aug__2017 = "August 2017"
+ 106              ;
+ 107              report_date = 21104;
+ 108              label report_date = "Report Date";
+ 109              format report_date mmddyy10.;
+ 110              annual_change = (Aug__2017 - Aug__2016 ) / Aug__2016;
+ 111              label annual_change = "Annual Change";
+ 112              format annual_change percent8.1;
+ 113          
+ 114        run;
+ 
+ NOTE: Missing values were generated as a result of performing an operation on missing values.
+       Each place is given by: (Number of times) at (Line):(Column).
+       6 at 110:35   
+ NOTE: There were 424 observations read from the data set HW_DATA.JOBS2017.
+       WHERE State is not null;
+ NOTE: The data set PULKIT10.JOBS2017 has 424 observations and 17 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.04 seconds
+       cpu time            0.02 seconds
+       
+ 
+ 115        
+ 116        /* 5  Create temporary datasets with specific conditions*/
+ 117        /*    Data with Current rate >5% and specific variables*/
+ 118        
+ 119        data work.jobs_5;
+ 120           set pulkit10.jobs2017;
+ 121           where (annual_change >0.05 or
+ 122             annual_change < -0.05 ) and
+ 123             annual_change is not missing;
+ 124           keep Sector
+ 125           State
+ 126           Aug__2016
+ 127           Aug__2017
+ 128           report_date
+ 129        annual_change;
+ 130        run;
+ 
+ NOTE: There were 25 observations read from the data set PULKIT10.JOBS2017.
+       WHERE  not (annual_change>=-0.05 and annual_change<=0.05) and (annual_change is not null);
+ NOTE: The data set WORK.JOBS_5 has 25 observations and 6 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.00 seconds
+       
+ 
+ 131        
+ 132        /* 6 Data where jobs in august 2017 is at least 1 more than jobs in July 2017 */
+ 133        
+ 134        data work.jobs_aug;
+ 135           set pulkit10.jobs2017;
+ 136           where aug__2017 >= july_2017 + 1 and
+ 137            annual_change is not missing;
+ 138           drop Aug__2016
+ 139            Sept__2016
+ 140              Oct__2016
+ 141            Nov__2016     
+ 142            Dec__2016
+ 143           report_date
+ 144        annual_change;
+ 145        run;
+ 
+ NOTE: There were 104 observations read from the data set PULKIT10.JOBS2017.
+       WHERE (aug__2017>=(july_2017+1)) and (annual_change is not null);
+ NOTE: The data set WORK.JOBS_AUG has 104 observations and 10 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.02 seconds
+       
+ 
+ 146        
+ 147        /* 7 When Industry has the work "services" in it. Remove when annual_change is missing */
+ 148        /*   Stay vigilant with case */
+ 149        
+ 150        data work.jobs_services;
+ 151           set pulkit10.jobs2017;
+ 152           where sector like "%SERVICES%" and annual_change is not missing;
+ WARNING: Apparent invocation of macro SERVICES not resolved.
+ 153           keep sector
+ 154           state
+ 155           Aug__2016
+ 156           Aug__2017
+ 157           annual_change
+ 158           report_date;
+ 159           Aug__2016 = round(Aug__2016,1);   
+ 160           Aug__2017 = round(Aug__2017,1);
+ 161        format Aug__2016 comma6.0;
+ 162        format Aug__2017 comma6.0;
+ 163        
+ 164        run;
+ 
+ NOTE: There were 104 observations read from the data set PULKIT10.JOBS2017.
+       WHERE sector like '%SERVICES%' and (annual_change is not null);
+ NOTE: The data set WORK.JOBS_SERVICES has 104 observations and 6 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.00 seconds
+       
+ 
+ 165        
+ 166        /* 8 Filter for states of Texas, Oklahoma, Arkansas, Louisiana, Mississippi, Kentucky,
+ 167             Tennessee, Alabama, Florida, Georgia, South Carolina, North Carolina, Virginia and
+ 168             District of Columbia */
+ 169        
+ 170        data work.jobs_states;
+ 171           set pulkit10.jobs2017;
+ 172           where ( state in ('Texas', 'Oklahoma', 'Arkansas',
+ 173           'Louisiana', 'Mississippi', 'Kentucky',
+ 174           'Alabama', 'Florida', 'Georgia',
+ 175           'South Carolina', 'North Carolina', 'Virginia') OR
+ 176              state Like ('Tennessee%') OR
+ 177              state Like ('District of Columbia%')
+ 178             ) AND
+ 179            sector NOT Like '%GOVERNMENT%';
+ 180           drop Aug__2016
+ 181           Sept__2016
+ 182           Oct__2016
+ 183           Nov__2016
+ 184           Dec__2016
+ 185           report_date;
+ 186        run;
+ 
+ NOTE: There were 98 observations read from the data set PULKIT10.JOBS2017.
+       WHERE (state in ('Alabama', 'Arkansas', 'Florida', 'Georgia', 'Kentucky', 'Louisiana', 'Mississippi', 'North Carolina', 
+       'Oklahoma', 'South Carolina', 'Texas', 'Virginia') or state like 'Tennessee%' or state like 'District of Columbia%') and 
+       sector not like '%GOVERNMENT%';
+ NOTE: The data set WORK.JOBS_STATES has 98 observations and 11 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.01 seconds
+       cpu time            0.02 seconds
+       
+ 
+ 187        
+ 188        /* 9 Open a pdf using fileref created above, without bookmarks*/
+ 189        
+ 190        ods pdf file = HW10 bookmarkgen= no;
+ NOTE: Writing ODS PDF output to DISK destination "HW10", printer "PDF".
+ 191        
+ 192        /* 10 descriptor portion of the cleaned up jobs data set created in step 4 */
+ 193        
+ 194        title '#10. Descriptor Portion of Cleaned Jobs Data Set';
+ 195        PROC CONTENTS data = pulkit10.jobs2017;
+ 196        RUN;
+ 
+ NOTE: PROCEDURE CONTENTS used (Total process time):
+       real time           0.12 seconds
+       cpu time            0.10 seconds
+       
+ 
+ 197        
+ 198        /* 11 listing of all temporary data sets that excludes the details of each data set */
+ 199        
+ 200        title '#11. List of Temporary Data Sets';
+ 201        PROC CONTENTS data = work._ALL_ nods;
+ 202        RUN;
+ 
+ NOTE: PROCEDURE CONTENTS used (Total process time):
+       real time           0.05 seconds
+       cpu time            0.05 seconds
+       
+ 
+ 203        
+ 204        /* 12 Print the data portion created in step 5 */
+ 205        
+ 206        title '#12 Records with over 5% Annual Change';
+ 207        PROC Print data = work.jobs_5 label NoObs;
+ 208        var
+ 209        /* report_data */
+ 210        annual_change
+ 211        state
+ 212        sector
+ 213        aug__2017
+ 214        aug__2016;
+ 215        RUN;
+ 
+ NOTE: There were 25 observations read from the data set WORK.JOBS_5.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.07 seconds
+       cpu time            0.07 seconds
+       
+ 
+ 216        
+ 217        /* 13 Print data portion of each of the temporary data sets created in steps 6 – 8 */
+ 218        
+ 219        title '#13 Records with Recent Monthly Increase';
+ 220        PROC Print data = work.jobs_aug label NoObs;
+ 221        var sector
+ 222        state
+ 223        jan__2017
+ 224        feb__2017
+ 225        mar__2017
+ 226        apr__2017
+ 227        may_2017
+ 228        june_2017
+ 229        july_2017
+ 230        aug__2017;
+ 231        RUN;
+ 
+ NOTE: There were 104 observations read from the data set WORK.JOBS_AUG.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.36 seconds
+       cpu time            0.34 seconds
+       
+ 
+ 232        
+ 233        
+ 234        title '#13 Services';
+ 235        PROC Print data = work.jobs_services label;
+ 236        var state
+ 237        aug__2016
+ 238        aug__2017
+ 239        annual_change
+ 240        sector
+ 241        report_date;
+ 242        
+ 243        RUN;
+ 
+ NOTE: There were 104 observations read from the data set WORK.JOBS_SERVICES.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.26 seconds
+       cpu time            0.27 seconds
+       
+ 243      !     
+ 
+ 244        
+ 245        title '#13 Southern States';
+ 246        PROC Print data = work.jobs_states label NoObs;
+ 247        var sector
+ 248        state
+ 249        jan__2017
+ 250        feb__2017
+ 251        mar__2017
+ 252        apr__2017
+ 253        may_2017
+ 254        june_2017
+ 255        july_2017
+ 256        aug__2017
+ 257        annual_change;
+ 258        RUN;
+ 
+ NOTE: There were 98 observations read from the data set WORK.JOBS_STATES.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.37 seconds
+       cpu time            0.37 seconds
+       
+ 
+ 259        
+ 260        ods pdf close;
+ NOTE: ODS PDF printed 14 pages to /folders/myfolders/assign10/pulkit.jain_HW10_output.pdf.
+ 261        ods listing;
+ 262        
+ 263        OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 276        

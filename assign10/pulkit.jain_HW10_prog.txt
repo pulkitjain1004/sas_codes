@@ -1,0 +1,199 @@
+/********************************************************************************************/
+/* Program Name:     pulkit.jain_HW10.sas												    */
+/* Program Location: C:\Users\Pulkit Jain\Documents\sasuniversityedition\myfolders\assign10 */
+/* Date Created:     10/14/2017      													    */
+/* Author: 			 Pulkit Jain          										            */
+/* Purpose:  		 Assignment 10, practice with accessing sas data, and view content      */
+/********************************************************************************************/
+
+/* 2 Create two libname statements; 					  */
+/* Assign library to locaion of hw data with access only; */
+/* Assign another library with read and write access;     */
+
+libname hw_data '/folders/myfolders/hw_data' access=readonly;
+libname pulkit10 '/folders/myfolders/assign10';
+
+/* 3 Specify a fileref to designate output of pdf */
+
+filename HW10 '/folders/myfolders/assign10/pulkit.jain_HW10_output.pdf';
+
+/* 4 Filter new data for following conditions 			 			 */
+/*   State is Not Equal to Blank/missing. All 3 syntax work here.	 */
+/*   Supply labels for months to display full month name 			 */
+/*   SAS dates are relative to 1/1/1960								 */
+
+
+data pulkit10.jobs2017;
+   set hw_data.jobs2017;
+/*    where State ne ''; */
+/*    where State is not missing; */
+  	  where State is not null;
+  	  label Aug__2016 = "August 2016"
+  	  		Sept__2016 = "September 2016"
+  	    	Oct__2016 = "October 2016"
+  	  		Nov__2016 = "November 2016"  	    	
+  	  		Dec__2016 = "December 2016"  	    	
+  	    	Jan__2017 = "January 2017"
+  	    	Feb__2017 = "February 2017"
+  	    	Mar__2017 = "March 2017"
+  	    	Apr__2017 = "April 2017"
+  	    	May_2017 = "May 2017"
+  	    	June_2017 = "June 2017"
+  	    	July_2017 = "July 2017"
+  	    	Aug__2017 = "August 2017"
+  	    	;
+  	    report_date = 21104;
+  	    label report_date = "Report Date";
+  	    format report_date mmddyy10.;
+  	    annual_change = (Aug__2017 - Aug__2016 ) / Aug__2016;
+  	    label annual_change = "Annual Change";
+  	    format annual_change percent8.1;
+  	  
+run;
+
+/* 5  Create temporary datasets with specific conditions*/
+/*    Data with Current rate >5% and specific variables*/
+
+data work.jobs_5;
+   set pulkit10.jobs2017;
+   where (annual_change >0.05 or 
+   		  annual_change < -0.05 ) and
+   		  annual_change is not missing;
+   keep Sector
+   		State
+   		Aug__2016
+   		Aug__2017
+   		report_date
+		annual_change;
+run;
+
+/* 6 Data where jobs in august 2017 is at least 1 more than jobs in July 2017 */
+
+data work.jobs_aug;
+   set pulkit10.jobs2017;
+   where aug__2017 >= july_2017 + 1 and
+   		 annual_change is not missing;
+   drop Aug__2016 
+  	  	Sept__2016 
+  	    Oct__2016 
+  	  	Nov__2016 	    	
+  	  	Dec__2016
+   		report_date
+		annual_change;
+run;
+
+/* 7 When Industry has the work "services" in it. Remove when annual_change is missing */
+/*   Stay vigilant with case */
+
+data work.jobs_services;
+   set pulkit10.jobs2017;
+   where sector like "%SERVICES%" and annual_change is not missing;
+   keep sector
+   		state
+   		Aug__2016
+   		Aug__2017
+   		annual_change
+   		report_date;
+   		Aug__2016 = round(Aug__2016,1);   		
+   		Aug__2017 = round(Aug__2017,1);
+format Aug__2016 comma6.0; 
+format Aug__2017 comma6.0; 
+   
+run;
+
+/* 8 Filter for states of Texas, Oklahoma, Arkansas, Louisiana, Mississippi, Kentucky, 
+     Tennessee, Alabama, Florida, Georgia, South Carolina, North Carolina, Virginia and 
+     District of Columbia */
+    
+data work.jobs_states;
+   set pulkit10.jobs2017;
+   where ( state in ('Texas', 'Oklahoma', 'Arkansas',
+   					'Louisiana', 'Mississippi', 'Kentucky', 
+   					'Alabama', 'Florida', 'Georgia',
+   					'South Carolina', 'North Carolina', 'Virginia') OR
+   		   state Like ('Tennessee%') OR
+   		   state Like ('District of Columbia%')
+   		  ) AND
+   		 sector NOT Like '%GOVERNMENT%';
+   drop Aug__2016
+   		Sept__2016
+   		Oct__2016
+   		Nov__2016
+   		Dec__2016
+   		report_date;
+run;
+
+/* 9 Open a pdf using fileref created above, without bookmarks*/
+
+ods pdf file = HW10 bookmarkgen= no;
+
+/* 10 descriptor portion of the cleaned up jobs data set created in step 4 */
+
+title '#10. Descriptor Portion of Cleaned Jobs Data Set';
+PROC CONTENTS data = pulkit10.jobs2017;
+RUN;
+
+/* 11 listing of all temporary data sets that excludes the details of each data set */
+
+title '#11. List of Temporary Data Sets';
+PROC CONTENTS data = work._ALL_ nods;
+RUN;
+
+/* 12 Print the data portion created in step 5 */
+
+title '#12 Records with over 5% Annual Change';
+PROC Print data = work.jobs_5 label NoObs;
+	var 
+		/* 	report_data */
+		annual_change
+		state
+		sector
+		aug__2017
+		aug__2016;
+RUN;
+
+/* 13 Print data portion of each of the temporary data sets created in steps 6 – 8 */
+
+title '#13 Records with Recent Monthly Increase';
+PROC Print data = work.jobs_aug label NoObs;
+	var sector
+		state
+		jan__2017
+		feb__2017
+		mar__2017
+		apr__2017
+		may_2017
+		june_2017
+		july_2017
+		aug__2017;
+RUN;
+
+	
+title '#13 Services';
+PROC Print data = work.jobs_services label;
+	var state
+		aug__2016
+		aug__2017
+		annual_change
+		sector
+		report_date;
+
+RUN;	
+
+title '#13 Southern States';
+PROC Print data = work.jobs_states label NoObs;
+	var sector
+		state
+		jan__2017
+		feb__2017
+		mar__2017
+		apr__2017
+		may_2017
+		june_2017
+		july_2017
+		aug__2017
+		annual_change;
+RUN;
+
+ods pdf close;
+ods listing;

@@ -1,0 +1,147 @@
+/********************************************************************************************/
+/* Program Name:     pulkit.jain_HW15.sas												    */
+/* Program Location: C:\Users\Pulkit Jain\Documents\sasuniversityedition\myfolders\assign15 */
+/* Date Created:     11/27/2017      													    */
+/* Author: 			 Pulkit Jain          										            */
+/* Purpose:  		 Assignment 15, User Defined Formats								    */
+/********************************************************************************************/
+
+/* 1 Use a fileref to access CSV file, include headers*/
+/* Create two libname statements; 						  */
+/* Assign library to locaion of hw data with access only; */
+/* Assign another library with read and write access;     */
+
+
+filename schools '/folders/myfolders/hw_data/OKSchools.csv';
+
+libname hw_data '/folders/myfolders/hw_data' access=readonly;
+libname pulkit15 '/folders/myfolders/assign15';
+
+/* Specify a fileref to designate output of pdf */
+
+filename HW15 '/folders/myfolders/assign15/pulkit.jain_HW15_output.pdf';
+
+/* 2 Create Output with landscape orientation */
+/* Display date on the final section of the output */
+/* SAS output should start on page number 2 */
+
+ods pdf file = HW15 bookmarkgen=yes ;
+options orientation = landscape pageno=2 date=NO;
+
+/* 3 Create a format to display school division based on number of students on HSTotal */
+/* Division is a label to show number of students size */
+
+/* 4 Create a second format within the same procedure for STRatio */
+
+proc format;
+	value Div_fmt  0-69 = 'B'
+				   70-106 = 'A'
+				   107-180 = '2A'
+				   181-374 = '3A'
+				   375-720 = '4A'
+				   721-1250 = '5A'
+				   1251-high = '6A'
+				   other = 'Non-HS';
+	value st_fmt   0-<10 = 'Very Small'
+				   10-<14= 'Small'
+				   14-<18= 'Medium'
+				   18-<22= 'Large'
+				   22-high='Very Large'
+				   other = 'Unknown';
+run;
+
+/* Alternate and faster way to read from csv */
+/* Not covered in assignment */
+
+/* PROC IMPORT DATAFILE = schools */
+/* 	DBMS = CSV */
+/* 	OUT = work.schools_data; */
+/* 	GETNAMES = YES; */
+/* RUN; */
+
+/*  5 Convert CSV to SAS dataset*/
+
+data work.school_data;
+	length School   $50 
+		   LocCity  $50
+		   MailCity $50
+		   County   $50
+		   Teachers 6
+		   Grade7 4
+		   Grade8 4
+		   Grade9 4
+		   Grade10 4
+		   Grade11 4
+		   Grade12 4
+		   Ungraded 4
+		   PreTotal 4
+		   ElemTotal 4
+		   HSTotal 4
+		   STRatio 6; 
+	infile schools DSD firstobs= 2;
+	input School
+	   	  LocCity 
+		  MailCity
+		  County
+		  Teachers
+		  Grade7
+		  Grade8
+		  Grade9
+		  Grade10
+		  Grade11
+		  Grade12
+		  Ungraded
+		  PreTotal
+		  ElemTotal
+		  HSTotal
+		  STRatio;
+run;
+
+/* 6 Print first 30 observations */
+
+PROC PRINT data = school_data (obs = 30) noobs;
+	title1 "Oklahoma School Analysis";
+	title2 "Partial Listing";
+	footnote "Based on NCES Data";
+RUN;
+
+/* 7 Output distribution of class sizes */
+
+PROC FREQ data = work.school_data;
+	tables STRatio / nocum missing ;
+	format STRatio st_fmt.;
+	title2 'Distribution of Class Sizes Based on Student/Teacher Ratio';
+	label stratio = "Class Size";
+RUN;
+
+/* 8 Average Student Teacher Ratio Grouped by Division*/
+/* 9 Include Date and Data Portion of Summary at the top of the page */
+
+title2;
+ods proctitle = off;
+options date = YES;
+
+PROC SUMMARY data = work.school_data missing mean maxdec=1 nway;
+	var STRatio;
+	class HSTotal;
+	format HSTotal div_fmt.;
+	output out = work.means2
+			mean = Ratio;
+run;
+
+proc print data= work.means2 noobs label;
+	title3 "Average Student-Teacher Ratio by School Division";
+	var HSTotal _FREQ_ Ratio;
+	label HSTotal = 'Division'
+		  _FREQ_ = 'Schools';
+	format Ratio 5.1;
+run;	
+
+/* 10 Houskeeping to make sure title or footnote dont carry over */
+ods proctitle = ON;
+title1;
+footnote;
+
+ods pdf close;
+ods listing;
+	
